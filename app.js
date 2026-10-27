@@ -40,8 +40,34 @@ document.addEventListener('DOMContentLoaded', () => {
     let envActive = false;
     let statsActive = false;
 
+    // Lightweight material tuning for a more consistent architectural finish on Quest.
+    function tuneModelMaterials(root) {
+        if (!root) return;
+        root.traverse((node) => {
+            if (!node.isMesh) return;
+            node.frustumCulled = true;
+            node.castShadow = false;
+            node.receiveShadow = false;
+            const materials = Array.isArray(node.material) ? node.material : [node.material];
+            materials.forEach((material) => {
+                if (!material) return;
+                if (material.map) {
+                    material.map.colorSpace = THREE.SRGBColorSpace;
+                    const maxAnisotropy = scene.renderer && scene.renderer.capabilities
+                        ? scene.renderer.capabilities.getMaxAnisotropy() : 1;
+                    material.map.anisotropy = Math.min(4, maxAnisotropy);
+                    material.map.needsUpdate = true;
+                }
+                if ('roughness' in material && material.roughness < 0.12) material.roughness = 0.12;
+                if ('metalness' in material) material.metalness = Math.min(material.metalness, 0.8);
+                material.needsUpdate = true;
+            });
+        });
+    }
+
     // 1. Model Status Event Listeners
     marketModel.addEventListener('model-loaded', () => {
+        tuneModelMaterials(marketModel.getObject3D('mesh'));
         if (placeholderMarket) placeholderMarket.setAttribute('visible', 'false');
         statusBadge.textContent = 'Ready';
         statusBadge.className = 'badge ready';
@@ -266,9 +292,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Atmosphere Lighting Switcher
     const lightingModes = [
-        { name: 'Daylight', sky: '#cbe4f9', ambient: '#ffffff', ambInt: 0.85, sun: '#fff7e6', sunInt: 1.5, sunPos: '25 45 30' },
-        { name: 'Golden Hour', sky: '#fed7aa', ambient: '#fdba74', ambInt: 0.7, sun: '#f97316', sunInt: 1.8, sunPos: '40 10 -25' },
-        { name: 'Dusk Market', sky: '#0f172a', ambient: '#38bdf8', ambInt: 0.35, sun: '#fde047', sunInt: 0.6, sunPos: '10 20 10' }
+        { name: 'Coastal Daylight', sky: '#b8d4e8', ambient: '#e7f0ff', ambInt: 0.72, ground: '#716354', sun: '#fff0d7', sunInt: 1.35, sunPos: '25 45 30', fill: 0.22 },
+        { name: 'Golden Hour', sky: '#e9b995', ambient: '#f4c9a1', ambInt: 0.58, ground: '#735342', sun: '#ffb66d', sunInt: 1.45, sunPos: '40 10 -25', fill: 0.16 },
+        { name: 'Blue Hour', sky: '#202d49', ambient: '#9bb9df', ambInt: 0.38, ground: '#393b48', sun: '#ffd09a', sunInt: 0.52, sunPos: '10 20 10', fill: 0.3 },
+        { name: 'Warm Market Evening', sky: '#453d39', ambient: '#f0c7a1', ambInt: 0.46, ground: '#3b3028', sun: '#ffcf8b', sunInt: 0.78, sunPos: '-8 14 12', fill: 0.24 }
     ];
     let lightIdx = 0;
 
@@ -281,7 +308,10 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('ambient-light').setAttribute('intensity', mode.ambInt);
         document.getElementById('sun-light').setAttribute('color', mode.sun);
         document.getElementById('sun-light').setAttribute('intensity', mode.sunInt);
+        document.getElementById('ambient-light').setAttribute('groundColor', mode.ground);
         document.getElementById('sun-light').setAttribute('position', mode.sunPos);
+        document.getElementById('fill-light').setAttribute('intensity', mode.fill);
+        document.getElementById('fill-light').setAttribute('visible', mode.fill > 0);
     });
 
     // Procedural 3D Horizon Plugin Toggle
