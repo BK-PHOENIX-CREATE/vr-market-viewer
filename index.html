@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#080b11">
+    <meta name="description" content="An immersive browser-based architectural walkthrough of Poorna Market, designed for desktop, mobile and Meta Quest WebXR.">
     <title>The Grand Bazaar — Architectural VR Experience</title>
     
     <!-- Google Fonts for Editorial Cinematic Typography -->
@@ -35,7 +37,7 @@
         </div>
         <div class="letterbox bottom-bar">
             <span class="coordinates">LAT: 17.728° N // LON: 83.315° E</span>
-            <span class="sound-toggle" id="btn-audio-toggle">AUDIO: <span id="audio-state">AMBIENT OFF</span></span>
+            <span class="sound-toggle" id="btn-audio-toggle">AUDIO: <span id="audio-state">MARKET AMBIENCE OFF</span></span>
         </div>
 
         <!-- Hero Content / Title Card -->
@@ -43,7 +45,7 @@
             <div class="hero-badge">IMMERSIVE SPATIAL PROTOTYPE</div>
             <h1 class="hero-title">THE GRAND<br><span class="glow-text">MARKET</span></h1>
             <p class="hero-subtitle">
-                A next-generation spatial walkthrough. Experience human-scale spatial flow, structural lighting, and architectural textures in high-fidelity virtual reality.
+                Explore Poorna Market at human scale. Compare daylight and evening atmospheres, move with your controller or teleport, and experience the architecture in browser-based VR.
             </p>
 
             <div class="launch-actions">
@@ -74,7 +76,7 @@
                 <div class="spec-divider"></div>
                 <div class="spec-item">
                     <span class="spec-label">COMPRESSION</span>
-                    <span class="spec-val">Draco & Meshopt Active</span>
+                    <span class="spec-val">GLB + PBR Materials</span>
                 </div>
                 <div class="spec-divider"></div>
                 <div class="spec-item">
@@ -97,11 +99,11 @@
 
         <div class="hud-body">
             <p class="controls-hint">
-                <strong>Controls:</strong> [W][A][S][D] Walk · [Mouse] Orbit · [Q/E] Elevation · [VR] Thumbsticks
+                <strong>Controls:</strong> Desktop: WASD / mouse · Quest: left stick to walk, right trigger to teleport. Use the controls menu for lighting, scale and ambience.
             </p>
 
             <div class="control-group">
-                <label for="glb-upload" class="upload-btn">📂 Instant Local .GLB Preview</label>
+                <label for="glb-upload" class="upload-btn">📂 Preview a local GLB / glTF</label>
                 <input type="file" id="glb-upload" accept=".glb,.gltf" hidden>
             </div>
 
@@ -122,9 +124,9 @@
 
             <div class="button-row">
                 <button id="btn-center">Auto-Center Ground</button>
-                <button id="btn-drone-cam">Cinematic Drone Cam</button>
-                <button id="btn-lighting">Atmosphere: Daylight</button>
-                <button id="btn-env-toggle">3D Horizon: Off</button>
+                <button id="btn-drone-cam">Cinematic Orbit (desktop)</button>
+                <button id="btn-lighting">Atmosphere: Coastal Daylight</button>
+                <button id="btn-env-toggle">Environment: Off</button>
                 <button id="btn-stats-toggle" style="grid-column: span 2;">FPS / VR Performance Stats</button>
             </div>
         </div>
@@ -138,7 +140,7 @@
     </div>
 
     <!-- ================= WEBXR 3D SCENE ================= -->
-    <!-- Includes Draco & Meshopt decoders for ultra-fast compressed GLB loading -->
+    <!-- Draco decoding is configured for compressed GLB geometry. Use the local optimizer script for a smaller deployment asset. -->
     <a-scene 
         gltf-model="dracoDecoderPath: https://www.gstatic.com/draco/versioned/decoders/1.5.7/; meshoptDecoderPath: https://unpkg.com/meshoptimizer@0.20.0/meshopt_decoder.js"
         renderer="antialias: true; colorManagement: true; physicallyCorrectLights: true; exposure: 1.05; toneMapping: ACESFilmicToneMapping"
@@ -171,7 +173,7 @@
 
         <a-light id="fill-light" type="directional" color="#a8c7e0" intensity="0.22" position="-20 15 -20"></a-light>
 
-        <!-- Large Horizon Ground Plane with Teleport Target -->
+        <!-- Neutral high-roughness ground avoids distracting reflections; also acts as the teleport surface. -->
         <a-plane id="ground" class="teleportable" position="0 -0.01 0" rotation="-90 0 0" width="600" height="600" 
                  color="#a9a69d" material="roughness: 0.98; metalness: 0" shadow="receive: true"></a-plane>
 
