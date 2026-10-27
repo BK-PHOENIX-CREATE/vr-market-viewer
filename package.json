@@ -1,0 +1,12 @@
+{
+  "name": "vr-market-viewer",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Optimization tooling for the Poorna Market A-Frame/WebXR viewer",
+  "scripts": {
+    "optimize:model": "gltf-transform optimize models/market-model.glb models/market-model-optimized.glb --compress draco"
+  },
+  "devDependencies": {
+    "@gltf-transform/cli": "^4.2.1"
+  }
+}
