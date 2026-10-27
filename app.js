@@ -67,7 +67,13 @@ document.addEventListener('DOMContentLoaded', () => {
     marketModel.addEventListener('model-loaded', () => {
         tuneModelMaterials(marketModel.getObject3D('mesh'));
         if (placeholderMarket) placeholderMarket.setAttribute('visible', 'false');
-        statusBadge.textContent = 'Ready';
+        statusBadge.textContent = 'Ready · PBR tuned';
+        const mesh = marketModel.getObject3D('mesh');
+        if (mesh) {
+            const box = new THREE.Box3().setFromObject(mesh);
+            const size = box.getSize(new THREE.Vector3());
+            heroModelStatus.title = `Model bounds: ${size.x.toFixed(1)} × ${size.y.toFixed(1)} × ${size.z.toFixed(1)} world units`;
+        }
         statusBadge.className = 'badge ready';
         heroModelStatus.textContent = 'Custom .GLB Ready';
         heroModelStatus.style.color = '#34d399';
@@ -118,48 +124,67 @@ document.addEventListener('DOMContentLoaded', () => {
         requestAnimationFrame(animate);
     }
 
-    // 3. Ambient Audio Synthesizer
-    function toggleAmbientSound() {
-        if (!audioCtx) {
-            const AudioContext = window.AudioContext || window.webkitAudioContext;
-            audioCtx = new AudioContext();
-
-            const bufferSize = audioCtx.sampleRate * 2;
-            const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-            const output = noiseBuffer.getChannelData(0);
-            for (let i = 0; i < bufferSize; i++) {
-                output[i] = Math.random() * 2 - 1;
-            }
-
-            const whiteNoise = audioCtx.createBufferSource();
-            whiteNoise.buffer = noiseBuffer;
-            whiteNoise.loop = true;
-
-            const filter = audioCtx.createBiquadFilter();
-            filter.type = 'lowpass';
-            filter.frequency.setValueAtTime(320, audioCtx.currentTime);
-
-            const gain = audioCtx.createGain();
-            gain.gain.setValueAtTime(0.045, audioCtx.currentTime);
-
-            whiteNoise.connect(filter);
-            filter.connect(gain);
-            gain.connect(audioCtx.destination);
-            whiteNoise.start(0);
-
-            audioState.textContent = 'AMBIENT ON';
-            audioState.style.color = '#34d399';
-        } else {
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume();
-                audioState.textContent = 'AMBIENT ON';
-                audioState.style.color = '#34d399';
-            } else if (audioCtx.state === 'running') {
-                audioCtx.suspend();
-                audioState.textContent = 'AMBIENT OFF';
-                audioState.style.color = '';
-            }
+    // 3. Lightweight procedural market soundscape. Starts only after a user gesture.
+    // This avoids downloading large audio files and works on static GitHub Pages.
+    let ambienceStarted = false;
+    async function toggleAmbientSound() {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContextClass) {
+            audioState.textContent = 'AUDIO UNSUPPORTED';
+            return;
         }
+
+        if (!audioCtx) {
+            audioCtx = new AudioContextClass();
+            const master = audioCtx.createGain();
+            master.gain.value = 0.0001;
+            master.connect(audioCtx.destination);
+
+            // Soft distant crowd / room tone from filtered noise, kept intentionally subtle.
+            const bufferSize = audioCtx.sampleRate * 3;
+            const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const data = noiseBuffer.getChannelData(0);
+            let last = 0;
+            for (let i = 0; i < bufferSize; i++) {
+                const white = Math.random() * 2 - 1;
+                last = (last + 0.035 * white) / 1.035;
+                data[i] = last * 3.5;
+            }
+            const crowd = audioCtx.createBufferSource();
+            crowd.buffer = noiseBuffer;
+            crowd.loop = true;
+            const crowdFilter = audioCtx.createBiquadFilter();
+            crowdFilter.type = 'bandpass';
+            crowdFilter.frequency.value = 480;
+            crowdFilter.Q.value = 0.55;
+            const crowdGain = audioCtx.createGain();
+            crowdGain.gain.value = 0.22;
+            crowd.connect(crowdFilter);
+            crowdFilter.connect(crowdGain);
+            crowdGain.connect(master);
+            crowd.start();
+
+            // Gentle low-frequency urban market bed, not a harsh white-noise loop.
+            const hum = audioCtx.createOscillator();
+            hum.type = 'sine';
+            hum.frequency.value = 58;
+            const humGain = audioCtx.createGain();
+            humGain.gain.value = 0.018;
+            hum.connect(humGain);
+            humGain.connect(master);
+            hum.start();
+
+            audioCtx.__marketMaster = master;
+            audioCtx.__marketSources = [crowd, hum];
+            ambienceStarted = true;
+        }
+
+        if (audioCtx.state === 'suspended') await audioCtx.resume();
+        const isPlaying = audioCtx.state === 'running' && audioCtx.__marketMaster.gain.value > 0.001;
+        audioCtx.__marketMaster.gain.cancelScheduledValues(audioCtx.currentTime);
+        audioCtx.__marketMaster.gain.setTargetAtTime(isPlaying ? 0.0001 : 0.72, audioCtx.currentTime, 0.18);
+        audioState.textContent = isPlaying ? 'AMBIENCE OFF' : 'MARKET AMBIENCE ON';
+        audioState.style.color = isPlaying ? '' : '#34d399';
     }
 
     btnAudioToggle.addEventListener('click', toggleAmbientSound);
@@ -234,6 +259,20 @@ document.addEventListener('DOMContentLoaded', () => {
         rig.setAttribute('rotation', '0 0 0');
     });
 
+    // Keep orbit camera out of the way when the user enters immersive VR.
+    scene.addEventListener('enter-vr', () => {
+        stopDroneOrbit();
+        if (audioCtx && audioCtx.state === 'running') {
+            audioState.textContent = 'MARKET AMBIENCE ON';
+        }
+    });
+
+    // Recenter to a comfortable eye-level spawn, with a predictable forward view.
+    scene.addEventListener('exit-vr', () => {
+        rig.setAttribute('position', '0 0 6');
+        rig.setAttribute('rotation', '0 0 0');
+    });
+
     // 7. HUD Toggle & Controls
     toggleHud.addEventListener('click', () => {
         hud.classList.toggle('hud-collapsed');
@@ -247,10 +286,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const file = e.target.files[0];
         if (!file) return;
         const url = URL.createObjectURL(file);
-        statusBadge.textContent = 'Loading File...';
+        statusBadge.textContent = 'Loading File…';
         statusBadge.className = 'badge loading';
         marketModel.setAttribute('gltf-model', url);
         heroModelStatus.textContent = file.name;
+        marketModel.addEventListener('model-loaded', () => URL.revokeObjectURL(url), { once: true });
     });
 
     // Sliders
