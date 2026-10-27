@@ -362,7 +362,7 @@ document.addEventListener('DOMContentLoaded', () => {
             ambInt: mode.ambInt,
             sunInt: mode.sunInt,
             fill: mode.fill,
-            sunPos: mode.sunPos.split(/\\s+/).map(Number)
+            sunPos: mode.sunPos.split(/\s+/).map(Number)
         };
         const endPosition = new THREE.Vector3(end.sunPos[0], end.sunPos[1], end.sunPos[2]);
         const startPosition = new THREE.Vector3(start.sunPos.x, start.sunPos.y, start.sunPos.z);
