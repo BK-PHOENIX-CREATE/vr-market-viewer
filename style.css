@@ -405,3 +405,50 @@ body, html {
     .specs-ribbon { display: none; }
     #hud { width: calc(100vw - 32px); left: 16px; top: 16px; }
 }
+
+
+/* Accessibility, headset-friendly touch targets and smaller-screen layout */
+button, input, label { -webkit-tap-highlight-color: transparent; }
+button:focus-visible, label:focus-visible, input:focus-visible {
+    outline: 2px solid #fbbf24;
+    outline-offset: 3px;
+}
+button:active { transform: translateY(1px); }
+#quick-dock button, .button-row button, .action-btn { min-height: 42px; }
+#hud {
+    max-height: calc(100dvh - 40px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(251, 191, 36, 0.45) transparent;
+}
+#hud .hud-body { padding-bottom: 2px; }
+.controls-hint { user-select: text; }
+@media (max-width: 640px) {
+    #hud {
+        max-height: min(64dvh, 560px);
+        padding: 13px;
+    }
+    .hero-container { padding: 0 18px; }
+    .hero-subtitle { margin-bottom: 24px; }
+    .launch-actions { gap: 10px; margin-bottom: 22px; }
+    .action-btn { width: min(100%, 360px); justify-content: flex-start; padding: 13px 18px; }
+    #quick-dock { bottom: max(12px, env(safe-area-inset-bottom)); gap: 2px; padding: 5px; width: max-content; max-width: calc(100vw - 20px); }
+    #quick-dock button { padding: 7px 10px; font-size: 0.7rem; }
+    .button-row { gap: 8px; }
+    .button-row button { min-height: 40px; }
+}
+@media (max-height: 620px) and (min-width: 641px) {
+    .hero-title { font-size: 2.5rem; margin-bottom: 10px; }
+    .hero-subtitle { margin-bottom: 18px; }
+    .launch-actions { margin-bottom: 16px; }
+    .specs-ribbon { padding: 7px 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+    }
+}
