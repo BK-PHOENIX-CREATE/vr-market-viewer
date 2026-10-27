@@ -141,7 +141,7 @@
     <!-- Includes Draco & Meshopt decoders for ultra-fast compressed GLB loading -->
     <a-scene 
         gltf-model="dracoDecoderPath: https://www.gstatic.com/draco/versioned/decoders/1.5.7/; meshoptDecoderPath: https://unpkg.com/meshoptimizer@0.20.0/meshopt_decoder.js"
-        renderer="antialias: true; colorManagement: true; physicallyCorrectLights: true; exposure: 1.15; toneMapping: ACESFilmicToneMapping"
+        renderer="antialias: true; colorManagement: true; physicallyCorrectLights: true; exposure: 1.05; toneMapping: ACESFilmicToneMapping"
         shadow="type: pcfsoft"
         loading-screen="dotsColor: #f59e0b; backgroundColor: #090d16">
 
@@ -154,12 +154,12 @@
         <a-entity id="procedural-env" environment="preset: default; active: false; ground: none; skyType: atmosphere"></a-entity>
 
         <!-- Dynamic Sky Dome -->
-        <a-sky id="sky" color="#cbe4f9"></a-sky>
+        <a-sky id="sky" color="#b8d4e8"></a-sky>
 
         <!-- Lighting Rig for Rich Architectural Shadows -->
-        <a-light id="ambient-light" type="hemisphere" color="#ffffff" groundColor="#786f66" intensity="0.85"></a-light>
+        <a-light id="ambient-light" type="hemisphere" color="#e7f0ff" groundColor="#716354" intensity="0.72"></a-light>
         
-        <a-light id="sun-light" type="directional" color="#fff7e6" intensity="1.5" position="25 45 30"
+        <a-light id="sun-light" type="directional" color="#fff0d7" intensity="1.35" position="25 45 30"
                  castShadow="true"
                  shadow-mapSizeWidth="2048"
                  shadow-mapSizeHeight="2048"
@@ -169,11 +169,11 @@
                  shadow-camera-bottom="-45"
                  shadow-bias="-0.0001"></a-light>
 
-        <a-light id="fill-light" type="directional" color="#90b4ce" intensity="0.4" position="-20 15 -20"></a-light>
+        <a-light id="fill-light" type="directional" color="#a8c7e0" intensity="0.22" position="-20 15 -20"></a-light>
 
         <!-- Large Horizon Ground Plane with Teleport Target -->
         <a-plane id="ground" class="teleportable" position="0 -0.01 0" rotation="-90 0 0" width="600" height="600" 
-                 color="#d4cdc5" material="roughness: 0.95; metalness: 0.05" shadow="receive: true"></a-plane>
+                 color="#a9a69d" material="roughness: 0.98; metalness: 0" shadow="receive: true"></a-plane>
 
         <!-- Architectural Layout Grid -->
         <a-entity id="reference-grid" geometry="primitive: plane; width: 300; height: 300" rotation="-90 0 0" position="0 0.005 0"
