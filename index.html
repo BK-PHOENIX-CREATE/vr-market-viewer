@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Grand Bazaar — Architectural VR Experience</title>
+    
+    <!-- Google Fonts for Editorial Cinematic Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Plus+Jakarta+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+    <!-- A-Frame WebXR Engine & Navigation Components -->
+    <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/c-frame/aframe-extras@7.5.2/dist/aframe-extras.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/aframe-blink-controls/dist/aframe-blink-controls.min.js"></script>
+    
+    <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+
+    <!-- ================= CINEMATIC LANDING OVERLAY ================= -->
+    <div id="cinematic-curtain" class="curtain-active">
+        <!-- Film grain noise texture layer -->
+        <div class="film-grain"></div>
+        <div class="cinematic-vignette"></div>
+
+        <!-- Top & Bottom Anamorphic Letterbox Bars -->
+        <div class="letterbox top-bar">
+            <span class="classification">ARCHITECTURAL SPATIAL VISUALIZATION</span>
+            <span class="codec-indicator">WEBXR 4K READY</span>
+        </div>
+        <div class="letterbox bottom-bar">
+            <span class="coordinates">LAT: 17.728° N // LON: 83.315° E</span>
+            <span class="sound-toggle" id="btn-audio-toggle">AUDIO: <span id="audio-state">AMBIENT OFF</span></span>
+        </div>
+
+        <!-- Hero Content / Title Card -->
+        <main class="hero-container">
+            <div class="hero-badge">IMMERSIVE SPATIAL PROTOTYPE</div>
+            <h1 class="hero-title">THE GRAND<br><span class="glow-text">MARKET</span></h1>
+            <p class="hero-subtitle">
+                A next-generation spatial walkthrough. Experience human-scale spatial flow, structural lighting, and architectural textures in high-fidelity virtual reality.
+            </p>
+
+            <div class="launch-actions">
+                <button id="btn-enter-explore" class="action-btn primary-btn">
+                    <span class="btn-shine"></span>
+                    <span class="btn-icon">❖</span>
+                    <span class="btn-text">
+                        <strong>ENTER WALKTHROUGH</strong>
+                        <small>Cinematic Fly-in & Desktop / Mobile Mode</small>
+                    </span>
+                </button>
+
+                <button id="btn-enter-vr-direct" class="action-btn vr-btn">
+                    <span class="btn-icon">🥽</span>
+                    <span class="btn-text">
+                        <strong>ENTER VR HEADSET</strong>
+                        <small>Meta Quest / Apple Vision Pro / PCVR</small>
+                    </span>
+                </button>
+            </div>
+
+            <!-- Quick Specs Row -->
+            <div class="specs-ribbon">
+                <div class="spec-item">
+                    <span class="spec-label">PERSPECTIVE</span>
+                    <span class="spec-val">1:1 Eye Level (1.65m)</span>
+                </div>
+                <div class="spec-divider"></div>
+                <div class="spec-item">
+                    <span class="spec-label">LOCOMOTION</span>
+                    <span class="spec-val">Thumbstick & Teleport</span>
+                </div>
+                <div class="spec-divider"></div>
+                <div class="spec-item">
+                    <span class="spec-label">MODEL STATUS</span>
+                    <span class="spec-val" id="hero-model-status">Detecting .GLB...</span>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- ================= IN-SCENE MINIMAL FLOATING HUD ================= -->
+    <div id="hud" class="hud-collapsed">
+        <div class="hud-header">
+            <div>
+                <h2>MARKET VIEWER</h2>
+                <span id="status-badge" class="badge loading">Loading Model...</span>
+            </div>
+            <button id="toggle-hud" class="icon-toggle" title="Toggle Menu">⚙</button>
+        </div>
+
+        <div class="hud-body">
+            <p class="controls-hint">
+                <strong>Controls:</strong> [W][A][S][D] Walk · [Mouse] Orbit · [Q/E] Elevation · [VR] Thumbsticks
+            </p>
+
+            <div class="control-group">
+                <label for="glb-upload" class="upload-btn">📂 Instant Local .GLB Preview</label>
+                <input type="file" id="glb-upload" accept=".glb,.gltf" hidden>
+            </div>
+
+            <div class="sliders">
+                <div class="slider-row">
+                    <label>Scale: <span id="scale-val">1.00</span>x</label>
+                    <input type="range" id="scale-slider" min="0.01" max="10" step="0.05" value="1">
+                </div>
+                <div class="slider-row">
+                    <label>Ground Offset (Y): <span id="y-val">0.0</span>m</label>
+                    <input type="range" id="y-slider" min="-10" max="10" step="0.1" value="0">
+                </div>
+                <div class="slider-row">
+                    <label>Walk Pace: <span id="speed-val">0.25</span></label>
+                    <input type="range" id="speed-slider" min="0.05" max="1.0" step="0.05" value="0.25">
+                </div>
+            </div>
+
+            <div class="button-row">
+                <button id="btn-center">Auto-Center Ground</button>
+                <button id="btn-drone-cam">Cinematic Drone Cam</button>
+                <button id="btn-lighting">Atmosphere: Daylight</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Quick Dock -->
+    <div id="quick-dock">
+        <button id="dock-btn-recenter" title="Reset Spawn View">Reset Position</button>
+        <button id="dock-btn-fly" title="Cinematic Orbit">Orbit Cam</button>
+        <button id="dock-btn-menu" title="Open Settings">Controls</button>
+    </div>
+
+    <!-- ================= WEBXR 3D SCENE ================= -->
+    <a-scene 
+        renderer="antialias: true; colorManagement: true; physicallyCorrectLights: true; exposure: 1.15; toneMapping: ACESFilmicToneMapping"
+        shadow="type: pcfsoft"
+        loading-screen="dotsColor: #f59e0b; backgroundColor: #090d16">
+
+        <!-- Asset Preloader -->
+        <a-assets timeout="45000">
+            <a-asset-item id="market-glb" src="./models/market-model.glb"></a-asset-item>
+        </a-assets>
+
+        <!-- Dynamic Sky Dome & Fog -->
+        <a-sky id="sky" color="#cbe4f9"></a-sky>
+
+        <!-- Lighting Rig for Rich Architectural Shadows -->
+        <a-light id="ambient-light" type="hemisphere" color="#ffffff" groundColor="#786f66" intensity="0.85"></a-light>
+        
+        <a-light id="sun-light" type="directional" color="#fff7e6" intensity="1.5" position="25 45 30"
+                 castShadow="true"
+                 shadow-mapSizeWidth="2048"
+                 shadow-mapSizeHeight="2048"
+                 shadow-camera-left="-45"
+                 shadow-camera-right="45"
+                 shadow-camera-top="45"
+                 shadow-camera-bottom="-45"
+                 shadow-bias="-0.0001"></a-light>
+
+        <!-- Fill light to soften harsh architectural shadows -->
+        <a-light id="fill-light" type="directional" color="#90b4ce" intensity="0.4" position="-20 15 -20"></a-light>
+
+        <!-- Large Horizon Ground Plane with Teleport Target -->
+        <a-plane id="ground" class="teleportable" position="0 -0.01 0" rotation="-90 0 0" width="600" height="600" 
+                 color="#d4cdc5" material="roughness: 0.95; metalness: 0.05" shadow="receive: true"></a-plane>
+
+        <!-- Architectural Layout Grid -->
+        <a-entity id="reference-grid" geometry="primitive: plane; width: 300; height: 300" rotation="-90 0 0" position="0 0.005 0"
+                  material="src: url(data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><rect width='100' height='100' fill='none' stroke='%23888888' stroke-width='1' stroke-opacity='0.25'/><rect width='20' height='20' fill='none' stroke='%23aaaaaa' stroke-width='0.5' stroke-opacity='0.15'/></svg>); repeat: 300 300; transparent: true"></a-entity>
+
+        <!-- Main Model Pivot & Container -->
+        <a-entity id="market-container" position="0 0 0" scale="1 1 1">
+            <a-entity id="market-model" class="teleportable" gltf-model="#market-glb" shadow="cast: true; receive: true"></a-entity>
+        </a-entity>
+
+        <!-- Placeholder Showcase Stall (Hidden automatically when your market-model.glb finishes loading) -->
+        <a-entity id="placeholder-market" position="0 0 -8">
+            <a-entity position="0 4.2 0">
+                <a-text value="Waiting for models/market-model.glb" align="center" width="7" color="#0f172a"></a-text>
+                <a-text value="Drop your file into the models folder or click 'Instant Local .GLB Preview'" align="center" position="0 -0.45 0" width="5" color="#64748b"></a-text>
+            </a-entity>
+
+            <!-- Architectural Marketplace Canopy Preview -->
+            <a-cylinder position="-3.5 1.7 0" radius="0.08" height="3.4" color="#475569" shadow></a-cylinder>
+            <a-cylinder position="3.5 1.7 0" radius="0.08" height="3.4" color="#475569" shadow></a-cylinder>
+            <a-cylinder position="-3.5 1.7 -4" radius="0.08" height="3.4" color="#475569" shadow></a-cylinder>
+            <a-cylinder position="3.5 1.7 -4" radius="0.08" height="3.4" color="#475569" shadow></a-cylinder>
+            
+            <a-box position="0 3.5 -2" width="7.8" height="0.1" depth="4.8" rotation="6 0 0" color="#d97706" shadow></a-box>
+            <a-box position="0 0.5 -2" width="6.6" height="1.0" depth="2.2" color="#b45309" shadow></a-box>
+            <a-box position="-2 1.25 -2" width="1.6" height="0.5" depth="1.2" color="#f59e0b" shadow></a-box>
+            <a-box position="0 1.25 -2" width="1.6" height="0.5" depth="1.2" color="#fbbf24" shadow></a-box>
+            <a-box position="2 1.25 -2" width="1.6" height="0.5" depth="1.2" color="#fcd34d" shadow></a-box>
+        </a-entity>
+
+        <!-- Player Camera Rig (Initial Drone Overview Coordinates: Y=18, Z=35) -->
+        <a-entity id="rig" 
+                  movement-controls="speed: 0.25; fly: false" 
+                  position="0 18 35"
+                  rotation="-22 0 0">
+            
+            <a-entity id="camera" 
+                      camera 
+                      position="0 1.65 0" 
+                      look-controls="pointerLockEnabled: false">
+            </a-entity>
+
+            <!-- Left VR Controller -->
+            <a-entity id="left-hand" 
+                      oculus-touch-controls="hand: left"
+                      vive-controls="hand: left"
+                      windows-motion-controls="hand: left"
+                      laser-controls="hand: left"
+                      raycaster="objects: .interactive; far: 20">
+            </a-entity>
+
+            <!-- Right VR Controller (Blink Teleport) -->
+            <a-entity id="right-hand" 
+                      oculus-touch-controls="hand: right"
+                      vive-controls="hand: right"
+                      windows-motion-controls="hand: right"
+                      blink-controls="cameraRig: #rig; teleportOrigin: #camera; collisionEntities: .teleportable; button: trigger; rotateOnTeleport: false">
+            </a-entity>
+        </a-entity>
+
+    </a-scene>
+
+    <script src="./app.js"></script>
+</body>
+</html>
