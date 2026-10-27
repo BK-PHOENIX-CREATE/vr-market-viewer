@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D VR Market Explorer</title>
+    <!-- A-Frame Core (WebXR / VR Framework) -->
+    <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
+    <!-- A-Frame Extras for VR Thumbstick Locomotion & Nav Controls -->
+    <script src="https://cdn.jsdelivr.net/gh/c-frame/aframe-extras@7.5.2/dist/aframe-extras.min.js"></script>
+    <!-- Teleport / Blink Controls for Comfort VR Navigation -->
+    <script src="https://cdn.jsdelivr.net/npm/aframe-blink-controls/dist/aframe-blink-controls.min.js"></script>
+    <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+
+    <!-- 2D HUD Overlay for Desktop & Pre-VR Setup -->
+    <div id="hud">
+        <div class="hud-header">
+            <h1>VR Market Explorer</h1>
+            <span id="status-badge" class="badge loading">Loading Model...</span>
+        </div>
+        
+        <p class="controls-hint">
+            <strong>Desktop:</strong> WASD / Arrows to walk, Mouse drag to look, Q/E to change elevation.<br>
+            <strong>VR Headset:</strong> Click <em>"Enter VR"</em> (bottom right). Left thumbstick to walk, Right thumbstick to snap-turn or point &amp; teleport.
+        </p>
+
+        <div class="control-group">
+            <label for="glb-upload" class="upload-btn">Test Local .GLB File Instantaneously</label>
+            <input type="file" id="glb-upload" accept=".glb,.gltf" hidden>
+        </div>
+
+        <div class="sliders">
+            <div class="slider-row">
+                <label>Model Scale: <span id="scale-val">1.0</span>x</label>
+                <input type="range" id="scale-slider" min="0.01" max="10" step="0.05" value="1">
+            </div>
+            <div class="slider-row">
+                <label>Height Offset (Y): <span id="y-val">0.0</span>m</label>
+                <input type="range" id="y-slider" min="-10" max="10" step="0.1" value="0">
+            </div>
+            <div class="slider-row">
+                <label>Walk Speed: <span id="speed-val">0.25</span></label>
+                <input type="range" id="speed-slider" min="0.05" max="1.0" step="0.05" value="0.25">
+            </div>
+        </div>
+
+        <div class="button-row">
+            <button id="btn-center">Auto-Center Model</button>
+            <button id="btn-reset-pos">Reset Spawn</button>
+            <button id="btn-lighting">Lighting: Daylight</button>
+        </div>
+        
+        <button id="toggle-hud" title="Minimize Menu">Hide Menu</button>
+    </div>
+
+    <button id="show-hud" class="hidden">Show Controls</button>
+
+    <!-- WebXR 3D Scene -->
+    <a-scene 
+        renderer="antialias: true; colorManagement: true; physicallyCorrectLights: true; exposure: 1.1"
+        shadow="type: pcfsoft"
+        loading-screen="dotsColor: #f59e0b; backgroundColor: #111827">
+
+        <!-- Asset Preloader -->
+        <a-assets timeout="30000">
+            <!-- Place your converted file at: models/market-model.glb -->
+            <a-asset-item id="market-glb" src="./models/market-model.glb"></a-asset-item>
+        </a-assets>
+
+        <!-- Sky & Atmospheric Fog -->
+        <a-sky id="sky" color="#d8ecf8"></a-sky>
+
+        <!-- Lighting Setup -->
+        <a-light id="ambient-light" type="hemisphere" color="#ffffff" groundColor="#8d7b68" intensity="0.9"></a-light>
+        <a-light id="sun-light" type="directional" color="#fff6e5" intensity="1.4" position="15 30 20"
+                 castShadow="true"
+                 shadow-mapSizeWidth="2048"
+                 shadow-mapSizeHeight="2048"
+                 shadow-camera-left="-40"
+                 shadow-camera-right="40"
+                 shadow-camera-top="40"
+                 shadow-camera-bottom="-40"></a-light>
+
+        <!-- Navigation Ground / Teleportation Surface -->
+        <a-plane id="ground" class="teleportable" position="0 -0.01 0" rotation="-90 0 0" width="300" height="300" 
+                 color="#d6cfc7" material="roughness: 0.9; metalness: 0.05" shadow="receive: true"></a-plane>
+
+        <!-- Subtle Reference Grid -->
+        <a-entity id="reference-grid" geometry="primitive: plane; width: 200; height: 200" rotation="-90 0 0" position="0 0.01 0"
+                  material="src: url(data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='64' height='64'><rect width='64' height='64' fill='none' stroke='%23999999' stroke-width='1' stroke-opacity='0.25'/></svg>); repeat: 200 200; transparent: true"></a-entity>
+
+        <!-- Main 3D Market Model Container -->
+        <a-entity id="market-container" position="0 0 0" scale="1 1 1">
+            <a-entity id="market-model" class="teleportable" gltf-model="#market-glb" shadow="cast: true; receive: true"></a-entity>
+        </a-entity>
+
+        <!-- Placeholder Market Preview (Automatically hidden once your market-model.glb loads) -->
+        <a-entity id="placeholder-market" position="0 0 -6">
+            <a-text value="Waiting for models/market-model.glb
+(Or click 'Test Local .GLB File' in top-left menu)" 
+                    align="center" position="0 3.6 0" scale="1.2 1.2 1.2" color="#1f2937"></a-text>
+            <!-- Sample Architectural Market Stall Canopy -->
+            <a-box position="-2.2 1.2 0" width="0.15" height="2.4" depth="0.15" color="#78350f" shadow></a-box>
+            <a-box position="2.2 1.2 0" width="0.15" height="2.4" depth="0.15" color="#78350f" shadow></a-box>
+            <a-box position="-2.2 1.2 -2.5" width="0.15" height="2.4" depth="0.15" color="#78350f" shadow></a-box>
+            <a-box position="2.2 1.2 -2.5" width="0.15" height="2.4" depth="0.15" color="#78350f" shadow></a-box>
+            <a-box position="0 2.55 -1.25" width="5.0" height="0.2" depth="3.2" rotation="8 0 0" color="#b45309" shadow></a-box>
+            <a-box position="0 0.55 -1.25" width="4.0" height="1.0" depth="1.4" color="#92400e" shadow></a-box>
+        </a-entity>
+
+        <!-- Player / VR Rig (Supports Quest, Vision Pro, PCVR, and Desktop) -->
+        <a-entity id="rig" 
+                  movement-controls="speed: 0.25; fly: false" 
+                  position="0 0 5">
+            <!-- Headset / Camera at Human Eye Level (1.65m) -->
+            <a-entity id="camera" 
+                      camera 
+                      position="0 1.65 0" 
+                      look-controls="pointerLockEnabled: false">
+            </a-entity>
+
+            <!-- Left Hand VR Controller (Smooth Locomotion via Thumbstick) -->
+            <a-entity id="left-hand" 
+                      oculus-touch-controls="hand: left"
+                      vive-controls="hand: left"
+                      windows-motion-controls="hand: left"
+                      laser-controls="hand: left"
+                      raycaster="objects: .interactive; far: 15">
+            </a-entity>
+
+            <!-- Right Hand VR Controller (Teleportation + Snap Turn) -->
+            <a-entity id="right-hand" 
+                      oculus-touch-controls="hand: right"
+                      vive-controls="hand: right"
+                      windows-motion-controls="hand: right"
+                      blink-controls="cameraRig: #rig; teleportOrigin: #camera; collisionEntities: .teleportable; button: trigger; rotateOnTeleport: false">
+            </a-entity>
+        </a-entity>
+
+    </a-scene>
+
+    <script src="./app.js"></script>
+</body>
+</html>
