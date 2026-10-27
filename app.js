@@ -6,7 +6,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const heroModelStatus = document.getElementById('hero-model-status');
 
     const rig = document.getElementById('rig');
-    const camera = document.getElementById('camera');
     const marketModel = document.getElementById('market-model');
     const marketContainer = document.getElementById('market-container');
     const placeholderMarket = document.getElementById('placeholder-market');
@@ -22,6 +21,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnCenter = document.getElementById('btn-center');
     const btnDroneCam = document.getElementById('btn-drone-cam');
     const btnLighting = document.getElementById('btn-lighting');
+    const btnEnvToggle = document.getElementById('btn-env-toggle');
+    const btnStatsToggle = document.getElementById('btn-stats-toggle');
     const glbUpload = document.getElementById('glb-upload');
     const toggleHud = document.getElementById('toggle-hud');
     const hud = document.getElementById('hud');
@@ -36,6 +37,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let isDroneMode = false;
     let droneAngle = 0;
     let droneAnimFrame = null;
+    let envActive = false;
+    let statsActive = false;
 
     // 1. Model Status Event Listeners
     marketModel.addEventListener('model-loaded', () => {
@@ -55,7 +58,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // 2. Cinematic Camera Fly-in Transition
-    // Smoothly eases from elevated drone view (0, 18, 35) down to eye-level entrance (0, 0, 6)
     function triggerCinematicFlyIn(onComplete) {
         const startPos = { x: 0, y: 18, z: 35 };
         const endPos = { x: 0, y: 0, z: 6 };
@@ -92,13 +94,12 @@ document.addEventListener('DOMContentLoaded', () => {
         requestAnimationFrame(animate);
     }
 
-    // 3. Ambient Audio Synthesizer (Zero external audio file dependencies)
+    // 3. Ambient Audio Synthesizer
     function toggleAmbientSound() {
         if (!audioCtx) {
             const AudioContext = window.AudioContext || window.webkitAudioContext;
             audioCtx = new AudioContext();
 
-            // Create gentle warm wind / architectural room tone
             const bufferSize = audioCtx.sampleRate * 2;
             const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
             const output = noiseBuffer.getChannelData(0);
@@ -168,7 +169,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const z = Math.cos(droneAngle) * radius;
             rig.setAttribute('position', `${x} 15 ${z}`);
             
-            // Aim camera towards model center
             const rotY = (droneAngle * 180 / Math.PI) + 180;
             rig.setAttribute('rotation', `-18 ${rotY} 0`);
             droneAnimFrame = requestAnimationFrame(orbitLoop);
@@ -282,5 +282,33 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('sun-light').setAttribute('color', mode.sun);
         document.getElementById('sun-light').setAttribute('intensity', mode.sunInt);
         document.getElementById('sun-light').setAttribute('position', mode.sunPos);
+    });
+
+    // Procedural 3D Horizon Plugin Toggle
+    btnEnvToggle.addEventListener('click', () => {
+        envActive = !envActive;
+        const envEl = document.getElementById('procedural-env');
+        const skyEl = document.getElementById('sky');
+        if (envActive) {
+            envEl.setAttribute('environment', 'active: true; preset: yavapai; ground: none');
+            skyEl.setAttribute('visible', 'false');
+            btnEnvToggle.textContent = '3D Horizon: On';
+        } else {
+            envEl.setAttribute('environment', 'active: false');
+            skyEl.setAttribute('visible', 'true');
+            btnEnvToggle.textContent = '3D Horizon: Off';
+        }
+    });
+
+    // VR Performance / FPS Stats Monitor Toggle
+    btnStatsToggle.addEventListener('click', () => {
+        statsActive = !statsActive;
+        if (statsActive) {
+            scene.setAttribute('stats', '');
+            btnStatsToggle.textContent = 'Hide FPS / Performance Stats';
+        } else {
+            scene.removeAttribute('stats');
+            btnStatsToggle.textContent = 'FPS / VR Performance Stats';
+        }
     });
 });
