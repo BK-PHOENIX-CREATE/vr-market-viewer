@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#080b11">
     <meta name="description" content="An immersive browser-based architectural walkthrough of Poorna Market, designed for desktop, mobile and Meta Quest WebXR.">
-    <title>The Grand Bazaar — Architectural VR Experience</title>
+    <title>Poorna Market — An Immersive Architectural Experience</title>
     
     <!-- Google Fonts for Editorial Cinematic Typography -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -14,7 +14,7 @@
 
     <!-- A-Frame WebXR Engine & Plugins -->
     <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
-    <!-- Locomotion & Nav Controls -->
+    <!-- Locomotion & Nav Studio -->
     <script src="https://cdn.jsdelivr.net/gh/c-frame/aframe-extras@7.5.2/dist/aframe-extras.min.js"></script>
     <!-- VR Teleport / Blink Controls -->
     <script src="https://cdn.jsdelivr.net/npm/aframe-blink-controls/dist/aframe-blink-controls.min.js"></script>
@@ -32,8 +32,8 @@
 
         <!-- Top & Bottom Anamorphic Letterbox Bars -->
         <div class="letterbox top-bar">
-            <span class="classification">ARCHITECTURAL SPATIAL VISUALIZATION</span>
-            <span class="codec-indicator">WEBXR + DRACO 3D READY</span>
+            <span class="classification">FIELD STUDY 01 / VISAKHAPATNAM, INDIA</span>
+            <span class="codec-indicator">REAL-TIME ARCHITECTURAL EXPLORATION</span>
         </div>
         <div class="letterbox bottom-bar">
             <span class="coordinates">LAT: 17.728° N // LON: 83.315° E</span>
@@ -42,10 +42,10 @@
 
         <!-- Hero Content / Title Card -->
         <main class="hero-container">
-            <div class="hero-badge">IMMERSIVE SPATIAL PROTOTYPE</div>
-            <h1 class="hero-title">THE GRAND<br><span class="glow-text">MARKET</span></h1>
+            <div class="hero-badge">A LIVING MARKET · A SPATIAL STORY</div>
+            <h1 class="hero-title">POORNA<br><span class="glow-text">MARKET</span></h1>
             <p class="hero-subtitle">
-                Explore Poorna Market at human scale. Compare daylight and evening atmospheres, move with your controller or teleport, and experience the architecture in browser-based VR.
+                Enter the rhythm of one of Visakhapatnam’s most vibrant market precincts. Explore the architecture at human scale, shift the atmosphere from coastal daylight to evening warmth, and move freely or teleport in immersive VR.
             </p>
 
             <div class="launch-actions">
@@ -53,16 +53,16 @@
                     <span class="btn-shine"></span>
                     <span class="btn-icon">❖</span>
                     <span class="btn-text">
-                        <strong>ENTER WALKTHROUGH</strong>
-                        <small>Cinematic Fly-in & Desktop / Mobile Mode</small>
+                        <strong>EXPLORE THE MARKET</strong>
+                        <small>Cinematic arrival · Desktop & mobile</small>
                     </span>
                 </button>
 
                 <button id="btn-enter-vr-direct" class="action-btn vr-btn">
                     <span class="btn-icon">🥽</span>
                     <span class="btn-text">
-                        <strong>ENTER VR HEADSET</strong>
-                        <small>Meta Quest / Apple Vision Pro / PCVR</small>
+                        <strong>ENTER IMMERSIVE VR</strong>
+                        <small>Built for Meta Quest WebXR</small>
                     </span>
                 </button>
             </div>
@@ -71,12 +71,12 @@
             <div class="specs-ribbon">
                 <div class="spec-item">
                     <span class="spec-label">PERSPECTIVE</span>
-                    <span class="spec-val">1:1 Eye Level (1.65m)</span>
+                    <span class="spec-val">Human-scale perspective</span>
                 </div>
                 <div class="spec-divider"></div>
                 <div class="spec-item">
                     <span class="spec-label">COMPRESSION</span>
-                    <span class="spec-val">GLB + PBR Materials</span>
+                    <span class="spec-val">Real-time 3D · PBR</span>
                 </div>
                 <div class="spec-divider"></div>
                 <div class="spec-item">
@@ -91,19 +91,19 @@
     <div id="hud" class="hud-collapsed">
         <div class="hud-header">
             <div>
-                <h2>MARKET VIEWER</h2>
-                <span id="status-badge" class="badge loading">Loading Model...</span>
+                <h2>POORNA MARKET</h2>
+                <span id="status-badge" class="badge loading">Preparing experience…</span>
             </div>
             <button id="toggle-hud" class="icon-toggle" title="Toggle Menu">⚙</button>
         </div>
 
         <div class="hud-body">
             <p class="controls-hint">
-                <strong>Controls:</strong> Desktop: WASD / mouse · Quest: left stick to walk, right trigger to teleport. Use the controls menu for lighting, scale and ambience.
+                <strong>Controls:</strong> DESKTOP  WASD + mouse\nQUEST  Left stick to move · Aim + trigger to teleport. Open Atmosphere to change the time of day.
             </p>
 
             <div class="control-group">
-                <label for="glb-upload" class="upload-btn">📂 Preview a local GLB / glTF</label>
+                <label for="glb-upload" class="upload-btn">＋ Load another 3D model</label>
                 <input type="file" id="glb-upload" accept=".glb,.gltf" hidden>
             </div>
 
@@ -123,19 +123,19 @@
             </div>
 
             <div class="button-row">
-                <button id="btn-center">Auto-Center Ground</button>
-                <button id="btn-drone-cam">Cinematic Orbit (desktop)</button>
-                <button id="btn-lighting">Atmosphere: Coastal Daylight</button>
-                <button id="btn-env-toggle">Environment: Off</button>
-                <button id="btn-stats-toggle" style="grid-column: span 2;">FPS / VR Performance Stats</button>
+                <button id="btn-center">Align model to ground</button>
+                <button id="btn-drone-cam">Cinematic orbit</button>
+                <button id="btn-lighting">Lighting: Coastal daylight</button>
+                <button id="btn-env-toggle">Horizon: Off</button>
+                <button id="btn-stats-toggle" style="grid-column: span 2;">Performance monitor</button>
             </div>
         </div>
     </div>
 
     <!-- Floating Quick Dock -->
     <div id="quick-dock">
-        <button id="dock-btn-recenter" title="Reset Spawn View">Reset Position</button>
-        <button id="dock-btn-fly" title="Cinematic Orbit">Orbit Cam</button>
+        <button id="dock-btn-recenter" title="Reset Spawn View">Recenter</button>
+        <button id="dock-btn-fly" title="Cinematic Orbit">Orbit</button>
         <button id="dock-btn-menu" title="Open Settings">Controls</button>
     </div>
 
