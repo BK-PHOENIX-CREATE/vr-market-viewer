@@ -46,8 +46,6 @@ document.addEventListener('DOMContentLoaded', () => {
         root.traverse((node) => {
             if (!node.isMesh) return;
             node.frustumCulled = true;
-            node.castShadow = false;
-            node.receiveShadow = false;
             const materials = Array.isArray(node.material) ? node.material : [node.material];
             materials.forEach((material) => {
                 if (!material) return;
