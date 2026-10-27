@@ -1,0 +1,29 @@
+name: Optimize 3D model
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  optimize:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install optimizer
+        run: npm install
+      - name: Compress GLB with glTF Transform
+        run: npm run optimize:model
+      - name: Upload optimized model
+        uses: actions/upload-artifact@v4
+        with:
+          name: market-model-optimized
+          path: models/market-model-optimized.glb
+          if-no-files-found: error
+          retention-days: 14
