@@ -1,2 +1,0 @@
-Place your converted 3D model in this folder and name it:
-market-model.glb
