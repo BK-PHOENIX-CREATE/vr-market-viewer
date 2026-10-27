@@ -46,6 +46,10 @@ document.addEventListener('DOMContentLoaded', () => {
         root.traverse((node) => {
             if (!node.isMesh) return;
             node.frustumCulled = true;
+            // GLTF meshes often arrive with shadow flags disabled. Enable both so the
+            // directional key light can cast architectural shadows and surfaces can receive them.
+            node.castShadow = true;
+            node.receiveShadow = true;
             const materials = Array.isArray(node.material) ? node.material : [node.material];
             materials.forEach((material) => {
                 if (!material) return;
