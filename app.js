@@ -337,19 +337,62 @@ document.addEventListener('DOMContentLoaded', () => {
     ];
     let lightIdx = 0;
 
+    // Blend between lighting states rather than snapping instantly. This feels more like a
+    // cinematographer changing the time of day and avoids a harsh visual jump in VR.
+    function transitionLighting(mode) {
+        const skyEl = document.getElementById('sky');
+        const ambientEl = document.getElementById('ambient-light');
+        const sunEl = document.getElementById('sun-light');
+        const fillEl = document.getElementById('fill-light');
+        const start = {
+            sky: new THREE.Color(skyEl.getAttribute('color')),
+            ambient: new THREE.Color(ambientEl.getAttribute('color')),
+            ground: new THREE.Color(ambientEl.getAttribute('groundColor')),
+            sun: new THREE.Color(sunEl.getAttribute('color')),
+            ambInt: Number(ambientEl.getAttribute('intensity')) || 0,
+            sunInt: Number(sunEl.getAttribute('intensity')) || 0,
+            fill: Number(fillEl.getAttribute('intensity')) || 0,
+            sunPos: sunEl.getAttribute('position')
+        };
+        const end = {
+            sky: new THREE.Color(mode.sky),
+            ambient: new THREE.Color(mode.ambient),
+            ground: new THREE.Color(mode.ground),
+            sun: new THREE.Color(mode.sun),
+            ambInt: mode.ambInt,
+            sunInt: mode.sunInt,
+            fill: mode.fill,
+            sunPos: mode.sunPos.split(/\\s+/).map(Number)
+        };
+        const endPosition = new THREE.Vector3(end.sunPos[0], end.sunPos[1], end.sunPos[2]);
+        const startPosition = new THREE.Vector3(start.sunPos.x, start.sunPos.y, start.sunPos.z);
+        const began = performance.now();
+        const duration = 1100;
+        const colorHex = (a, b, t) => '#' + a.clone().lerp(b, t).getHexString();
+        function tick(now) {
+            const raw = Math.min(1, (now - began) / duration);
+            const t = 1 - Math.pow(1 - raw, 3);
+            skyEl.setAttribute('color', colorHex(start.sky, end.sky, t));
+            ambientEl.setAttribute('color', colorHex(start.ambient, end.ambient, t));
+            ambientEl.setAttribute('groundColor', colorHex(start.ground, end.ground, t));
+            sunEl.setAttribute('color', colorHex(start.sun, end.sun, t));
+            ambientEl.setAttribute('intensity', start.ambInt + (end.ambInt - start.ambInt) * t);
+            sunEl.setAttribute('intensity', start.sunInt + (end.sunInt - start.sunInt) * t);
+            fillEl.setAttribute('intensity', start.fill + (end.fill - start.fill) * t);
+            const p = startPosition.clone().lerp(endPosition, t);
+            sunEl.setAttribute('position', { x: p.x, y: p.y, z: p.z });
+            if (raw < 1) requestAnimationFrame(tick);
+            else fillEl.setAttribute('visible', mode.fill > 0);
+        }
+        fillEl.setAttribute('visible', true);
+        requestAnimationFrame(tick);
+    }
+
     btnLighting.addEventListener('click', () => {
         lightIdx = (lightIdx + 1) % lightingModes.length;
         const mode = lightingModes[lightIdx];
-        btnLighting.textContent = `Atmosphere: ${mode.name}`;
-        document.getElementById('sky').setAttribute('color', mode.sky);
-        document.getElementById('ambient-light').setAttribute('color', mode.ambient);
-        document.getElementById('ambient-light').setAttribute('intensity', mode.ambInt);
-        document.getElementById('sun-light').setAttribute('color', mode.sun);
-        document.getElementById('sun-light').setAttribute('intensity', mode.sunInt);
-        document.getElementById('ambient-light').setAttribute('groundColor', mode.ground);
-        document.getElementById('sun-light').setAttribute('position', mode.sunPos);
-        document.getElementById('fill-light').setAttribute('intensity', mode.fill);
-        document.getElementById('fill-light').setAttribute('visible', mode.fill > 0);
+        btnLighting.textContent = `Lighting: ${mode.name}`;
+        transitionLighting(mode);
     });
 
     // Procedural 3D Horizon Plugin Toggle
