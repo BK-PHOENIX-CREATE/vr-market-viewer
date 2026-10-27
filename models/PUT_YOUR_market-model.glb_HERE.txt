@@ -1,1 +1,1 @@
-Rename your exported 3D model to 'market-model.glb' and place it in this directory.
+Place your converted market-model.glb file inside this folder.
